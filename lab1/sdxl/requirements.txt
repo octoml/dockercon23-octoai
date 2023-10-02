@@ -1,0 +1,11 @@
+sanic==23.3.0
+Pillow>=6.2.1
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch==2.0.1+cu118
+torchvision==0.15.2+cu118
+accelerate==0.21.0
+transformers==4.31.0
+safetensors==0.3.2
+opencv-python==4.8.0.76
+diffusers==0.21.2
+xformers==0.0.21

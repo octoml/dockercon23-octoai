@@ -1,0 +1,5 @@
+Pillow==9.5.0
+numpy==1.24.4
+octoai-sdk==0.5.1
+jupyterlab==4.0.6
+notebook==7.0.4
