@@ -25,20 +25,18 @@ class Model:
     def __init__(self):
         """Initialize the model."""
         print("Initializing SDXL+Canny pipeline...")
-        # Init the controlnet
-        self._controlnet = ControlNetModel.from_pretrained(
-            "diffusers/controlnet-canny-sdxl-1.0",
-            torch_dtype=torch.float16
-        )
-        # Init the VAE
-        self._vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
-        # Init the SDXL+Controlnet Pipeline
-        self._pipe = StableDiffusionXLControlNetPipeline.from_pretrained(
-            "stabilityai/stable-diffusion-xl-base-1.0",
-            controlnet=self._controlnet,
-            vae=self._vae,
-            torch_dtype=torch.float16
-        )
+
+        # TODO: add the controlnet
+        # controlnet =
+
+        # TODO: add the VAE
+        # vae = ...
+
+        # TODO: add the SDXL+Controlnet Pipeline
+        # self._pipe = StableDiffusionXLControlNetPipeline.from_pretrained(...)
+
+        # Begin SDXL optimizations
+
         # Enable memory optimization
         self._pipe.unet.to(memory_format=torch.channels_last)
         # Send to GPU
@@ -49,6 +47,8 @@ class Model:
         self._pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(
             self._pipe.scheduler.config
         )
+
+        # End SDXL optimizations
         print("SDXL+Canny pipeline has been initialized!")
 
     def predict(self, inputs: typing.Dict[str, str]) -> typing.Dict[str, str]:
@@ -80,18 +80,17 @@ class Model:
         controlnet_conditioning_scale = inputs.get("controlnet_conditioning_scale", 0.5)
         control_guidance_start = inputs.get("control_guidance_start", 0)
         control_guidance_end = inputs.get("control_guidance_end", 0.67)
+        image = inputs.get("image", None)
 
         print("\tPrompt: {}".format(prompt))
         print("\tNegative prompt: {}".format(negative_prompt))
         print("\tGuidance scale: {}".format(guidance_scale))
         print("\tNum inference steps: {}".format(num_inference_steps))
         print("\tControlNet Conditioning scale: {}".format(controlnet_conditioning_scale))
-        print("\ttControlNet Guidance start: {}".format(control_guidance_start))
-        print("\ttControlNet Guidance end: {}".format(control_guidance_end))
+        print("\tControlNet Guidance start: {}".format(control_guidance_start))
+        print("\tControlNet Guidance end: {}".format(control_guidance_end))
 
-        # Read the image from the input dictionary
-        image = inputs.get("image", None)
-        # Convert from a base64 encoded string to a PIL Image
+        # Convert input image string base64 into Pillow Image
         image_bytes = BytesIO(b64decode(image))
         image_pil = Image.open(image_bytes)
         # Derive the dimensions of the rescaled image
@@ -99,39 +98,17 @@ class Model:
         print("\tWidth: {}".format(width))
         print("\tHeight: {}".format(height))
 
-        # Apply canny filter from CV2 on the input image - this is used for ControlNet
-        image_pil = image_pil.convert('RGB')
-        image_np = np.array(image_pil)
-        image_np = cv2.Canny(
-            image_np,
-            inputs.get("canny_low_threshold", 100),
-            inputs.get("canny_high_threshold", 200))
-        # Post process to feed into SDXL pipeline
-        image_np = image_np[:, :, None]
-        image_np = np.concatenate([image_np, image_np, image_np], axis=2)
-        image_pil = Image.fromarray(image_np)
-
         # Initialize the generator's random seed
         generator = torch.Generator(device="cuda").manual_seed(seed)
-        # Run the SDXL pipeline
-        images = self._pipe(
-            prompt,
-            negative_prompt=negative_prompt,
-            image=image_pil,
-            generator=generator,
-            width=width,
-            height=height,
-            guidance_scale=guidance_scale,
-            num_images_per_prompt=1,
-            num_inference_steps=num_inference_steps,
-            controlnet_conditioning_scale=controlnet_conditioning_scale,
-            control_guidance_start=control_guidance_start,
-            control_guidance_end=control_guidance_end
-            ).images
+
+        # TODO: add canny filter
+
+        # TODO: run SDXL pipeline
+        # images = self._pipe().images
 
         print("SDXL+Canny request completed!")
 
-        # Prepare the response dictionary
+        # Return first image
         response = {"completion": {"image": read_image(images[0])}}
 
         return response
