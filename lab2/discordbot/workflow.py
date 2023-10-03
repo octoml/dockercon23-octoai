@@ -33,6 +33,7 @@ def octoshop(image: Image, user_prompt: str, user_style: dict) -> (Image, str, s
     llama2_endpoint_url = (
         "https://dockercon23-llama2-4jkxk521l3v1.octoai.run/v1/chat/completions"
     )
+    faceswap_endpoint_url = "https://dockercon23-faceswap-4jkxk521l3v1.octoai.run"
 
     # STEP 1
     # Feed that image into CLIP interrogator
@@ -77,8 +78,6 @@ def octoshop(image: Image, user_prompt: str, user_style: dict) -> (Image, str, s
         "negative_prompt": user_style["negative_prompt"],
         "num_inference_steps": 20,
         "guidance_scale": 7.5,
-        "width": 1024,
-        "height": 1024,
         "seed": randint(1, 1000000),
         "controlnet_conditioning_scale": 0.45,
         "control_guidance_start": 0.0,
@@ -90,7 +89,16 @@ def octoshop(image: Image, user_prompt: str, user_style: dict) -> (Image, str, s
     )
     image_string = output["completion"]["image"]
 
-    return image_string, clip_labels, llama2_text
+    output = client.infer(
+        endpoint_url="{}/predict".format(faceswap_endpoint_url),
+        inputs={
+            "src_image": image_base64,
+            "dst_image": image_string
+        }
+    )
+    fs_sdxl_image_string = output["completion"]["image"]
+
+    return fs_sdxl_image_string, clip_labels, llama2_text
 
 
 def octoshop_workflow(image_url: str):
