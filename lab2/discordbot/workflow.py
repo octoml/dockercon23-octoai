@@ -64,7 +64,7 @@ def octoshop(image: Image, user_prompt: str, user_style: dict) -> (Image, str, s
             {"role": "user", "content": "{}".format(llama_prompt)},
         ],
         "stream": False,
-        "max_tokens": 256,
+        "max_tokens": 70
     }
     outputs = client.infer(endpoint_url=llama2_endpoint_url, inputs=llama_inputs)
     llama2_text = outputs.get("choices")[0].get("message").get("content")
